@@ -126,12 +126,16 @@ out:
 	return error;
 }
 
+
 int gfs2_set_acl(struct inode *inode, struct posix_acl *acl, int type)
 {
 	struct gfs2_inode *ip = GFS2_I(inode);
 	struct gfs2_holder gh;
 	bool need_unlock = false;
 	int ret;
+
+	if (acl && acl->a_count > GFS2_ACL_MAX_ENTRIES(GFS2_SB(inode)))
+		return -E2BIG;
 
 	ret = gfs2_rsqa_alloc(ip);
 	if (ret)
@@ -143,7 +147,18 @@ int gfs2_set_acl(struct inode *inode, struct posix_acl *acl, int type)
 			return ret;
 		need_unlock = true;
 	}
+	if (type == ACL_TYPE_ACCESS && acl) {
+		umode_t mode = inode->i_mode;
+
+		ret = posix_acl_update_mode(inode, &inode->i_mode, &acl);
+		if (ret)
+			goto unlock;
+		if (mode != inode->i_mode)
+			mark_inode_dirty(inode);
+	}
+
 	ret = __gfs2_set_acl(inode, acl, type);
+unlock:
 	if (need_unlock)
 		gfs2_glock_dq_uninit(&gh);
 	return ret;
