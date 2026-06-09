@@ -849,7 +849,7 @@ struct xfrm_policy *xfrm_policy_bysel_ctx(struct net *net,
 	*err = 0;
 	spin_lock_bh(&net->xfrm.xfrm_policy_lock);
 	chain = policy_hash_bysel(net, sel, sel->family, dir);
-	Ret = NULL;
+	ret = NULL;
 	hlist_for_each_entry(pol, chain, bydst) {
 		if (pol->type == type &&
 		    xfrm_policy_mark_match(mark, pol) &&
@@ -892,7 +892,7 @@ struct xfrm_policy *xfrm_policy_byid(struct net *net,
 	*err = 0;
 	spin_lock_bh(&net->xfrm.xfrm_policy_lock);
 	chain = net->xfrm.policy_byidx + idx_hash(net, id);
-	Ret = NULL;
+	ret = NULL;
 	hlist_for_each_entry(pol, chain, byidx) {
 		if (pol->type == type && pol->index == id &&
 		    xfrm_policy_mark_match(mark, pol)) {
