@@ -138,6 +138,7 @@ void ion_buffer_destroy(struct ion_buffer *buffer);
  * case, the pages being free'd must be truly free'd back to the
  * system, not put in a page pool or otherwise cached.
  */
+ 
 struct ion_heap_ops {
 	int (*allocate)(struct ion_heap *heap,
 			struct ion_buffer *buffer, unsigned long len,
@@ -544,6 +545,10 @@ int ion_walk_heaps(struct ion_client *client, int heap_id,
 
 struct ion_handle *ion_handle_get_by_id_nolock(struct ion_client *client,
 					       int id);
+
+void ion_free_nolock(struct ion_client *client, struct ion_handle *handle);
+
+int ion_handle_put_nolock(struct ion_handle *handle);
 
 int ion_handle_put(struct ion_handle *handle);
 
