@@ -45,10 +45,6 @@ jobs:
         run: |
          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s legacy
          
-      - name: Patch KernelSU
-        run: |
-         cp patch/init.c KernelSU-Next/kernel/core/init.c
-         
       - name: Start Build (with log)
         env:
           KBUILD_BUILD_USER: "Hoshino"
