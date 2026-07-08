@@ -45,26 +45,10 @@ jobs:
         run: |
          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s legacy
 
-     # - name: Patch compatibility
-        # run: |
-          # sed -i 's@<linux/compiler_types.h>@<linux/compiler.h>@' \
-          # drivers/kernelsu/feature/sulog.c
-
-          # sed -i 's@<linux/compiler_types.h>@<linux/compiler.h>@' \
-          # drivers/kernelsu/sulog/event.h
-
-      - name: Apply KernelSU 4.9 Compatibility Patch
+      - name: Patch Manual Hook
         run: |
-          cd KernelSU-Next
-
-          echo "Checking patch..."
-          git apply --check ../4.9ksuncompatbility.patch
-          echo "✓ Patch can be applied."
-
-          echo "Applying patch..."
-          git apply ../4.9ksuncompatbility.patch
-          echo "✓ Patch applied successfully."
-         
+          patch -p1 < min_scope_syscall_hooks_v1.5.patch
+          
       - name: Start Build (with log)
         env:
           KBUILD_BUILD_USER: "Hoshino"
