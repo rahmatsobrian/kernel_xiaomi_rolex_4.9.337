@@ -45,10 +45,13 @@ jobs:
         run: |
          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s legacy
 
-      - name: Patch sulog
+      - name: Patch compatibility
         run: |
           sed -i 's@<linux/compiler_types.h>@<linux/compiler.h>@' \
           drivers/kernelsu/feature/sulog.c
+
+          sed -i 's@<linux/compiler_types.h>@<linux/compiler.h>@' \
+          drivers/kernelsu/sulog/event.h
          
       - name: Start Build (with log)
         env:
