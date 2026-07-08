@@ -1,0 +1,123 @@
+From 8e2e908e1e27e07466178a9037370399cb8d18e1 Mon Sep 17 00:00:00 2001
+From: ThRE Team <threteam@gmail.com>
+Date: Tue, 7 Jul 2026 18:43:23 +0700
+Subject: [PATCH] Fix compilation compatibility for Linux Kernel 4.9
+
+- Add conditional checks for compiler_types.h (introduced in 4.14)
+- Handle missing __poll_t and EPOLL* flags on older polling systems
+- Fix asm/set_memory.h and sched/signal.h include paths for legacy kernels
+---
+ kernel/feature/selinux_hide.c |  5 +++++
+ kernel/feature/sulog.c        |  5 +++++
+ kernel/infra/event_queue.c    | 14 ++++++++++++++
+ kernel/infra/event_queue.h    |  5 +++++
+ kernel/sulog/event.c          |  4 ++++
+ kernel/sulog/event.h          |  5 +++++
+ 6 files changed, 38 insertions(+)
+
+diff --git a/kernel/feature/selinux_hide.c b/kernel/feature/selinux_hide.c
+index 8b3ee87e50..b36494bc1c 100644
+--- a/kernel/feature/selinux_hide.c
++++ b/kernel/feature/selinux_hide.c
+@@ -3,7 +3,12 @@
+ #include <linux/mm.h>
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
++#include <linux/version.h>
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 12, 0)
+ #include <asm/set_memory.h>
++#else
++#include <asm/cacheflush.h>
++#endif
+ #include <linux/namei.h>
+ #include <linux/kthread.h>
+ #include <linux/delay.h>
+diff --git a/kernel/feature/sulog.c b/kernel/feature/sulog.c
+index 7173b70a8f..78a3f141d6 100644
+--- a/kernel/feature/sulog.c
++++ b/kernel/feature/sulog.c
+@@ -1,5 +1,10 @@
+ #include <linux/cache.h>
++#include <linux/version.h>
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+ #include <linux/compiler_types.h>
++#else
++#include <linux/compiler.h>
++#endif
+ 
+ #include "feature/sulog.h"
+ #include "klog.h" // IWYU pragma: keep
+diff --git a/kernel/infra/event_queue.c b/kernel/infra/event_queue.c
+index 9f5816c3c4..28494be329 100644
+--- a/kernel/infra/event_queue.c
++++ b/kernel/infra/event_queue.c
+@@ -11,6 +11,20 @@
+ 
+ #include "infra/event_queue.h"
+ 
++#include <linux/version.h>
++#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 16, 0)
++#ifndef EPOLLIN
++#define EPOLLIN POLLIN
++#endif
++#ifndef EPOLLRDNORM
++#define EPOLLRDNORM POLLRDNORM
++#endif
++#ifndef EPOLLHUP
++#define EPOLLHUP POLLHUP
++#endif
++#endif
++
++
+ struct ksu_event_queue_node {
+     struct list_head list;
+     struct ksu_event_record_hdr hdr;
+diff --git a/kernel/infra/event_queue.h b/kernel/infra/event_queue.h
+index f00f2e71f9..3e8a2b8ffd 100644
+--- a/kernel/infra/event_queue.h
++++ b/kernel/infra/event_queue.h
+@@ -10,6 +10,11 @@
+ #include <linux/types.h>
+ #include <linux/wait.h>
+ 
++#include <linux/version.h>
++#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 16, 0)
++typedef unsigned int __poll_t;
++#endif
++
+ #define KSU_EVENT_RECORD_FLAG_INTERNAL (1U << 0)
+ #define KSU_EVENT_QUEUE_TYPE_DROPPED ((__u16)0xFFFF)
+ 
+diff --git a/kernel/sulog/event.c b/kernel/sulog/event.c
+index 949b806711..bf9c2614cf 100644
+--- a/kernel/sulog/event.c
++++ b/kernel/sulog/event.c
+@@ -4,7 +4,11 @@
+ #include <linux/gfp.h>
+ #include <linux/kernel.h>
+ #include <linux/overflow.h>
++#include <linux/version.h>
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
+ #include <linux/sched/signal.h>
++#endif
++
+ #include <linux/slab.h>
+ #include <linux/string.h>
+ #include <linux/uaccess.h>
+diff --git a/kernel/sulog/event.h b/kernel/sulog/event.h
+index 6a555cc34a..fb329a1fb7 100644
+--- a/kernel/sulog/event.h
++++ b/kernel/sulog/event.h
+@@ -1,7 +1,12 @@
+ #ifndef __KSU_H_SULOG_EVENT
+ #define __KSU_H_SULOG_EVENT
+ 
++#include <linux/version.h>
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+ #include <linux/compiler_types.h>
++#else
++#include <linux/compiler.h>
++#endif
+ #include <linux/gfp.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
