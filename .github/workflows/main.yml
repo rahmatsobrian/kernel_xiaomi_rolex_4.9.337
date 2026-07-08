@@ -43,7 +43,12 @@ jobs:
 
       - name: Setup KernelSU (Legacy)
         run: |
-         curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s legacy
+         curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s legac
+
+      - name: Patch sulog
+        run: |
+          sed -i 's@<linux/compiler_types.h>@<linux/compiler.h>@' \
+          drivers/kernelsu/feature/sulog.c
          
       - name: Start Build (with log)
         env:
