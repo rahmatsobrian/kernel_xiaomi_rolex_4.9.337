@@ -49,7 +49,7 @@ jobs:
 
       - name: Setup KernelSU (Hookless)
         run: |
-          # curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s legacy
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s legacy
 
       - name: Start Build with log
         env:
